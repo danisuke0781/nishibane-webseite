@@ -1,0 +1,45 @@
+---
+// Import the global CSS styles
+import '../styles/global.css';
+
+// Define the page title as a property
+export interface Props {
+    title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{title}</title>
+    </head>
+    <body class="bg-gray-100 font-sans antialiased">
+        <!-- Main content wrapper with Tailwind CSS classes for responsive design -->
+        <div class="flex flex-col min-h-screen">
+            <!-- Header section -->
+            <header class="bg-blue-500 text-white py-4">
+                <div class="container mx-auto px-4">
+                    <h1 class="text-3xl font-bold">{title}</h1>
+                </div>
+            </header>
+
+            <!-- Main content area that will grow to fill available space -->
+            <main class="flex-grow">
+                <slot />
+            </main>
+
+            <!-- Footer section -->
+            <footer class="bg-gray-800 text-white py-4">
+                <div class="container mx-auto px-4 text-center">
+                    &copy; {new Date().getFullYear()} My Website
+                </div>
+            </footer>
+        </div>
+    </body>
+</html>

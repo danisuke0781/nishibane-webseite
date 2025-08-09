@@ -18,13 +18,17 @@
     "@astrojs/mdx": "4.3.0",
     "@astrojs/rss": "4.0.11",
     "@astrojs/sitemap": "3.4.1",
+    "@tailwindcss/vite": "^4.1.11",
     "astro": "^5.12.8",
+    "graphql": "^16.11.0",
+    "graphql-request": "^7.2.0",
     "typescript": "5.8.3"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.11",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.17",
+    "tailwindcss": "^4.1.11",
     "wrangler": "4.21.x"
   },
   "scripts": {

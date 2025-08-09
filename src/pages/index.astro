@@ -1,50 +1,85 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
----
+// src/pages/index.astro
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-	</head>
-	<body>
-		<Header />
-		<main>
-			<h1>🧑‍🚀 Hello, Astronaut!</h1>
-			<p>
-				Welcome to the official <a href="https://astro.build/">Astro</a> blog starter template. This
-				template serves as a lightweight, minimally-styled starting point for anyone looking to build
-				a personal website, blog, or portfolio with Astro.
-			</p>
-			<p>
-				This template comes with a few integrations already configured in your
-				<code>astro.config.mjs</code> file. You can customize your setup with
-				<a href="https://astro.build/integrations">Astro Integrations</a> to add tools like Tailwind,
-				React, or Vue to your project.
-			</p>
-			<p>Here are a few ideas on how to get started with the template:</p>
-			<ul>
-				<li>Edit this page in <code>src/pages/index.astro</code></li>
-				<li>Edit the site header items in <code>src/components/Header.astro</code></li>
-				<li>Add your name to the footer in <code>src/components/Footer.astro</code></li>
-				<li>Check out the included blog posts in <code>src/content/blog/</code></li>
-				<li>Customize the blog post page layout in <code>src/layouts/BlogPost.astro</code></li>
-			</ul>
-			<p>
-				Have fun! If you get stuck, remember to <a href="https://docs.astro.build/"
-					>read the docs
-				</a> or <a href="https://astro.build/chat">join us on Discord</a> to ask questions.
-			</p>
-			<p>
-				Looking for a blog template with a bit more personality? Check out <a
-					href="https://github.com/Charca/astro-blog-template"
-					>astro-blog-template
-				</a> by <a href="https://twitter.com/Charca">Maxi Ferreira</a>.
-			</p>
-		</main>
-		<Footer />
-	</body>
+// 1. Notwendige Pakete importieren
+import { GraphQLClient, gql } from 'graphql-request';
+
+// 2. Umgebungsvariablen laden und prüfen
+// Astro lädt PUBLIC_*-Variablen. Wir überprüfen, ob sie existieren.
+const endpoint = import.meta.env.PUBLIC_CRAFT_API_URL;
+const token = import.meta.env.PUBLIC_CRAFT_API_TOKEN;
+
+if (!endpoint || !token) {
+    // Wenn die Variablen fehlen, werfen wir einen Fehler, der im Terminal angezeigt wird.
+    // Das ist entscheidend für das Debugging.
+    console.error('FEHLER: Umgebungsvariablen für Craft CMS fehlen.');
+    console.error(`PUBLIC_CRAFT_API_URL: ${endpoint}`);
+    console.error(`PUBLIC_CRAFT_API_TOKEN: ${token ? 'vorhanden' : 'fehlt'}`);
+    throw new Error('GraphQL-Verbindung kann nicht hergestellt werden. Bitte prüfe deine .env-Datei.');
+}
+
+// 3. GraphQL-Client mit dem Autorisierungs-Header instanziieren
+// Die Anforderung wird hier auf dem Server (während des Astro-Renderings) gestellt.
+const client = new GraphQLClient(endpoint, {
+    headers: {
+        authorization: `Bearer ${token}`,
+    },
+});
+
+// 4. Die GraphQL-Abfrage definieren
+const query = gql`
+  query MyQuery {
+    entries(section: "blog") {
+      ... on blog_blog_Entry {
+        id
+        title
+        slug
+        postDate
+      }
+    }
+  }
+`;
+
+// 5. Die Daten abrufen und Fehler behandeln
+// Wir verwenden einen try-catch-Block, um Fehler abzufangen und die Anwendung nicht abstürzen zu lassen.
+let entries = [];
+let error = null;
+
+try {
+  const data = await client.request(query);
+  entries = data.entries;
+} catch (e) {
+  // Wir speichern den Fehler, um ihn später im HTML-Teil zu visualisieren
+  error = e.message;
+  console.error("GraphQL-Abfrage fehlgeschlagen:", e);
+}
+
+---
+<!-- 6. Hier beginnt der HTML-Teil deines Astro-Projekts -->
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Astro mit Craft CMS</title>
+  </head>
+  <body>
+    <h1>Meine Blog-Einträge von Craft CMS</h1>
+    {error ? (
+      <p style="color: red;">Fehler beim Laden der Daten: {error}</p>
+    ) : (
+      <ul>
+        {entries.length > 0 ? (
+          entries.map(entry => (
+            <li key={entry.id}>
+              <h2>{entry.title}</h2>
+              <p>Veröffentlicht am: {new Date(entry.postDate).toLocaleDateString()}</p>
+              <a href={`/blog/${entry.slug}`}>Mehr lesen</a>
+            </li>
+          ))
+        ) : (
+          <p>Keine Einträge gefunden.</p>
+        )}
+      </ul>
+    )}
+  </body>
 </html>

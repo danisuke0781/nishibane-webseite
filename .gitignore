@@ -28,3 +28,4 @@ pnpm-debug.log*
 .dev.vars
 #craft-token
 .craft-token
+.env
